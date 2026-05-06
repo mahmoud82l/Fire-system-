@@ -1,96 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire System - Professional POS v2</title>
-    
+    <title>Fire System - نظام فايـر الاحترافي</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
     <style>
-        :root {
-            --primary-blue: #005A9E;
-            --bg-gray: #f3f2f1;
-            --border-color: #d2d0ce;
-            --text-main: #323130;
-        }
-
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: var(--bg-gray);
-            color: var(--text-main);
-            margin: 0;
-            overflow: hidden; 
-            user-select: none;
-        }
-
-        .top-nav {
-            background: #fff;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 20px;
-            height: 40px;
-        }
-
-        .system-title { font-weight: 700; color: var(--primary-blue); font-size: 16px; }
-
-        .nav-tabs { display: flex; gap: 10px; }
-        .tab-link {
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 13px;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-link.active { border-bottom: 2px solid var(--primary-blue); font-weight: 600; }
-
-        .logout-small { font-size: 11px; color: #a80000; cursor: pointer; text-decoration: underline; }
-
-        .content-area { padding: 15px; height: calc(100vh - 70px); overflow-y: auto; }
-
-        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin-top: 10px; }
-        th { background: #faf9f8; text-align: left; padding: 8px; border: 1px solid var(--border-color); }
-        td { padding: 6px 8px; border: 1px solid var(--border-color); }
-
-        .input-bar { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        input { padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; }
-        input:focus { outline: none; border-color: var(--primary-blue); }
-
-        button {
-            padding: 8px 15px; background: var(--primary-blue); color: white; border: none;
-            cursor: pointer; font-size: 13px; border-radius: 4px; font-weight: 600; transition: 0.2s;
-        }
-        button:hover { background: #004578; }
-        
-        .btn-green { background: #107c10; }
-        .btn-green:hover { background: #0b5a0b; }
-        .btn-red { background: #d13438; }
-        .btn-red:hover { background: #a80000; }
-        .btn-small { padding: 4px 8px; font-size: 11px; margin-right: 5px;}
-
+        :root { --primary-blue: #005A9E; --bg-gray: #f3f2f1; --border-color: #d2d0ce; --text-main: #323130; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-gray); color: var(--text-main); margin: 0; overflow: hidden; user-select: none; }
+        .top-nav { background: #fff; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; height: 45px; }
+        .system-title { font-weight: 700; color: var(--primary-blue); font-size: 18px; }
+        .nav-tabs { display: flex; gap: 15px; }
+        .tab-link { padding: 10px 15px; cursor: pointer; font-size: 14px; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-link.active { border-bottom-color: var(--primary-blue); font-weight: 700; color: var(--primary-blue); }
+        .logout-small { font-size: 12px; color: #a80000; cursor: pointer; text-decoration: underline; }
+        .content-area { padding: 15px; height: calc(100vh - 80px); overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th { background: #faf9f8; text-align: right; padding: 12px; border: 1px solid var(--border-color); }
+        td { padding: 10px; border: 1px solid var(--border-color); }
+        .input-bar { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+        input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; }
+        button { padding: 8px 18px; background: var(--primary-blue); color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: 600; }
+        .btn-green { background: #107c10; } .btn-red { background: #d13438; }
+        .btn-small { padding: 4px 8px; font-size: 12px; }
         .hidden { display: none !important; }
-        
+        .cart-summary { background: #fff; border: 1px solid var(--border-color); padding: 15px; margin-top: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .qty-edit { width: 50px; text-align: center; border: 1px dashed var(--primary-blue); cursor: pointer; }
+        @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; right: 0; top: 0; width: 100%; } }
         .login-wrap { height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .login-card { background: white; padding: 25px; border: 1px solid var(--border-color); width: 320px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
-        .auth-nav { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
-        .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #605e5c; font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; }
-        .auth-tab.active { color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue); }
-
-        .alert-box { color: white; padding: 8px; font-size: 12px; margin-bottom: 15px; display: none; border-radius: 4px; text-align: center; }
-
-        /* منطقة الفاتورة */
-        .cart-summary {
-            background: #fff; border: 1px solid var(--border-color); padding: 15px; margin-top: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
-        }
-
-        /* الطباعة - إخفاء كل حاجة ماعدا الفاتورة أو الباركود */
-        @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-        }
+        .login-card { background: white; padding: 30px; border: 1px solid var(--border-color); width: 320px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -99,114 +37,93 @@
 
     <div id="loginPage" class="login-wrap">
         <div class="login-card">
-            <div class="auth-nav">
-                <div id="tabLogin" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
-                <div id="tabRegister" class="auth-tab" onclick="switchAuthTab('register')">Create Account</div>
-            </div>
-            <div id="authAlert" class="alert-box"></div>
-            
-            <div id="loginForm">
-                <input type="text" id="loginUser" placeholder="Username" style="width: 100%; margin-bottom: 5px;">
-                <span style="font-size: 11px; display: block; margin-bottom: 15px; color: #888;">@firesystem.com</span>
-                <input type="password" id="loginPass" placeholder="Password" style="width: 100%; margin-bottom: 15px;">
-                <button id="loginBtn" onclick="processAuth()" style="width: 100%;">Login to System</button>
-            </div>
-
-            <div id="registerForm" class="hidden">
-                <input type="text" id="regUser" placeholder="New Username" style="width: 100%; margin-bottom: 5px;">
-                <span style="font-size: 11px; display: block; margin-bottom: 15px; color: #888;">@firesystem.com</span>
-                <input type="password" id="regPass" placeholder="New Password (Min 6 chars)" style="width: 100%; margin-bottom: 15px;">
-                <button id="regBtn" onclick="processRegister()" class="btn-green" style="width: 100%;">Create & Login</button>
-            </div>
+            <h3 style="text-align: center; color: var(--primary-blue);">نظام فايـر للمبيعات</h3>
+            <div id="authAlert" style="display:none; padding:10px; color:white; border-radius:4px; margin-bottom:10px; text-align:center; font-size:12px;"></div>
+            <input type="text" id="loginUser" placeholder="اسم المستخدم" style="width:100%; margin-bottom:15px;">
+            <input type="password" id="loginPass" placeholder="كلمة المرور" style="width:100%; margin-bottom:20px;">
+            <button onclick="processAuth()" style="width:100%;">دخول</button>
+            <p style="text-align:center; font-size:12px; color:#888; margin-top:15px;">اتصل بالمسؤول لإنشاء حساب</p>
         </div>
     </div>
 
     <div id="mainSystem" class="hidden">
         <nav class="top-nav">
-            <div class="system-title">FIRE SYSTEM v2.0</div>
+            <div class="system-title">FIRE SYSTEM</div>
             <div class="nav-tabs">
-                <div class="tab-link active" onclick="showTab('pos')">POS (Sales)</div>
-                <div class="tab-link" onclick="showTab('stock')">Inventory</div>
-                <div class="tab-link" onclick="showTab('returns')">Returns</div>
+                <div class="tab-link active" onclick="showTab('pos')">شاشة البيع</div>
+                <div class="tab-link" onclick="showTab('stock')">المخزن</div>
+                <div class="tab-link" onclick="showTab('logs')">سجل الفواتير</div>
             </div>
-            <div class="logout-small" onclick="confirmLogout()">Logout</div>
+            <div class="logout-small" onclick="confirmLogout()">تسجيل خروج</div>
         </nav>
 
         <div class="content-area">
-            
             <div id="posTab">
                 <div class="input-bar">
-                    <input type="text" id="sellInput" placeholder="Scan Barcode (Enter)" style="width: 300px;">
+                    <input type="text" id="sellInput" placeholder="امسح الباركود هنا..." style="width: 350px;">
+                    <span>اضغط <b>Enter</b> للإضافة</span>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Item Code</th>
-                            <th>Product Name</th>
-                            <th>Qty</th>
-                            <th>Action</th>
+                            <th>الكود</th>
+                            <th>اسم المنتج</th>
+                            <th>الكمية (اضغط للتعديل)</th>
+                            <th>حذف</th>
                         </tr>
                     </thead>
                     <tbody id="cartTableBody"></tbody>
                 </table>
-                
                 <div class="cart-summary">
+                    <div><b>إجمالي القطع: <span id="cartTotalQty">0</span></b></div>
                     <div>
-                        <strong>Total Items: <span id="cartTotalQty">0</span></strong>
-                    </div>
-                    <div>
-                        <button onclick="printReceipt()" style="margin-right: 10px;">Print Receipt (Draft)</button>
-                        <button onclick="confirmSale()" class="btn-green">Confirm Sale (Deduct Stock)</button>
+                        <button onclick="printReceipt()" style="background:#666;">طباعة ريسيت</button>
+                        <button onclick="confirmSale()" class="btn-green">تأكيد البيع وخصم المخزن</button>
                     </div>
                 </div>
             </div>
 
             <div id="stockTab" class="hidden">
                 <div class="input-bar">
-                    <input type="text" id="pCode" placeholder="Global/Internal Barcode" style="width: 200px;">
-                    <input type="text" id="pName" placeholder="Product Name">
-                    <input type="number" id="pQty" placeholder="Qty">
-                    <button onclick="updateStock()">Save/Edit Stock</button>
+                    <input type="text" id="pCode" placeholder="الباركود">
+                    <input type="text" id="pName" placeholder="اسم المنتج">
+                    <input type="number" id="pQty" placeholder="الكمية">
+                    <button onclick="updateStock()">حفظ / تعديل</button>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Barcode (ID)</th>
-                            <th>Item Name</th>
-                            <th>Current Stock</th>
-                            <th>Actions</th>
+                            <th>الباركود</th>
+                            <th>اسم المنتج</th>
+                            <th>المتاح</th>
+                            <th>عمليات</th>
                         </tr>
                     </thead>
                     <tbody id="stockTableBody"></tbody>
                 </table>
             </div>
 
-            <div id="returnsTab" class="hidden">
-                <div class="input-bar">
-                    <input type="text" id="returnCode" placeholder="Product Barcode to Return" style="width: 250px;">
-                    <input type="number" id="returnQty" placeholder="Qty to Return" value="1" style="width: 100px;">
-                    <button onclick="processReturn()" class="btn-red">Process Return (Add to Stock)</button>
-                </div>
+            <div id="logsTab" class="hidden">
+                <h3>الفواتير المباعة مؤخراً</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Returned Barcode</th>
-                            <th>Product Name</th>
-                            <th>Qty Returned</th>
-                            <th>Time</th>
+                            <th>رقم الفاتورة</th>
+                            <th>التاريخ</th>
+                            <th>التفاصيل</th>
+                            <th>إرجاع كامل الفاتورة</th>
                         </tr>
                     </thead>
-                    <tbody id="returnsTableBody"></tbody>
+                    <tbody id="logsTableBody"></tbody>
                 </table>
             </div>
-
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCVWN1_9_9uNXBfwFpPJUZMSS17cvTQUV4",
@@ -214,237 +131,164 @@
         projectId: "fire-system-4a0c3",
         storageBucket: "fire-system-4a0c3.firebasestorage.app",
         messagingSenderId: "34578512308",
-        appId: "1:34578512308:web:d05b93e97cbe0fe30bdae1",
-        measurementId: "G-TNHMC7Z65N"
+        appId: "1:34578512308:web:d05b93e97cbe0fe30bdae1"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // متغيرات الفاتورة المبدئية
     let currentCart = [];
 
-    // --- UI Navigation ---
+    // التنقل بين التبويبات
     window.showTab = (tab) => {
-        document.getElementById('posTab').classList.toggle('hidden', tab !== 'pos');
-        document.getElementById('stockTab').classList.toggle('hidden', tab !== 'stock');
-        document.getElementById('returnsTab').classList.toggle('hidden', tab !== 'returns');
-        document.querySelectorAll('.tab-link').forEach(el => el.classList.toggle('active', el.innerText.toLowerCase().includes(tab)));
-        if(tab === 'pos') document.getElementById('sellInput').focus();
+        ['pos', 'stock', 'logs'].forEach(t => document.getElementById(t+'Tab').classList.add('hidden'));
+        document.getElementById(tab+'Tab').classList.remove('hidden');
+        document.querySelectorAll('.tab-link').forEach(el => el.classList.toggle('active', el.onclick.toString().includes(tab)));
+        if(tab === 'logs') loadSalesLogs();
     };
 
-    window.switchAuthTab = (tab) => {
-        document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-        document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-        document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
-        document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-    };
-
-    function showAlert(msg, color) {
-        const box = document.getElementById('authAlert');
-        box.innerText = msg; box.style.backgroundColor = color; box.style.display = 'block';
-    }
-
-    // --- Authentication ---
+    // الدخول والخروج
     window.processAuth = async () => {
-        const uField = document.getElementById('loginUser').value.trim();
-        const pField = document.getElementById('loginPass').value;
-        if (!uField || !pField) { showAlert("Enter Username & Password.", "#d13438"); return; }
-        
-        try {
-            showAlert("Connecting...", "#0078D4");
-            await signInWithEmailAndPassword(auth, uField + "@firesystem.com", pField);
-        } catch (error) { showAlert("Login Failed.", "#d13438"); }
+        const u = document.getElementById('loginUser').value + "@firesystem.com";
+        const p = document.getElementById('loginPass').value;
+        try { await signInWithEmailAndPassword(auth, u, p); } 
+        catch (e) { alert("خطأ في بيانات الدخول"); }
     };
-
-    window.processRegister = async () => {
-        const uField = document.getElementById('regUser').value.trim();
-        const pField = document.getElementById('regPass').value;
-        if (!uField || pField.length < 6) { showAlert("Invalid data.", "#d13438"); return; }
-        
-        try { 
-            showAlert("Creating...", "#0078D4");
-            await createUserWithEmailAndPassword(auth, uField + "@firesystem.com", pField); 
-        } catch (error) { showAlert("Error: " + error.message, "#d13438"); }
-    };
-
-    window.confirmLogout = () => { if(confirm("Log out?")) signOut(auth).then(() => location.reload()); };
-
+    window.confirmLogout = () => { if(confirm("هل تريد تسجيل الخروج؟")) signOut(auth).then(()=>location.reload()); };
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('loginPage').classList.add('hidden');
+        if(user) { 
+            document.getElementById('loginPage').classList.add('hidden'); 
             document.getElementById('mainSystem').classList.remove('hidden');
-            document.getElementById('sellInput').focus();
             loadStockRealtime();
         }
     });
 
-    // --- POS: Cart System ---
-    document.getElementById('sellInput').addEventListener('keypress', async (e) => { 
+    // --- شاشة البيع ---
+    document.getElementById('sellInput').addEventListener('keypress', async (e) => {
         if(e.key === 'Enter') {
             const code = e.target.value.trim();
-            if(!code) return;
-            
-            // Check Firebase if item exists
-            const docRef = doc(db, "inventory", code);
-            const snap = await getDoc(docRef);
-            
-            if(snap.exists() && snap.data().quantity > 0) {
-                // ضيف للسلة المبدئية بدل الخصم المباشر
-                const existingItem = currentCart.find(item => item.code === code);
-                if(existingItem) {
-                    existingItem.qty += 1;
-                } else {
-                    currentCart.push({ code: code, name: snap.data().name, qty: 1 });
-                }
+            const snap = await getDoc(doc(db, "inventory", code));
+            if(snap.exists()) {
+                const item = currentCart.find(i => i.code === code);
+                if(item) item.qty++; else currentCart.push({ code, name: snap.data().name, qty: 1 });
                 renderCart();
-            } else {
-                alert("Product out of stock or not registered!");
-            }
+            } else alert("المنتج غير موجود!");
             e.target.value = '';
-        } 
+        }
     });
 
     function renderCart() {
         const tbody = document.getElementById('cartTableBody');
         tbody.innerHTML = '';
-        let totalItems = 0;
-
-        currentCart.forEach((item, index) => {
-            totalItems += item.qty;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${item.code}</td>
-                    <td>${item.name}</td>
-                    <td>${item.qty}</td>
-                    <td><button class="btn-red btn-small" onclick="removeFromCart(${index})">Remove</button></td>
-                </tr>
-            `;
+        let total = 0;
+        currentCart.forEach((item, idx) => {
+            total += item.qty;
+            tbody.innerHTML += `<tr>
+                <td>${item.code}</td>
+                <td>${item.name}</td>
+                <td onclick="editQty(${idx})" class="qty-edit">${item.qty}</td>
+                <td><button class="btn-red btn-small" onclick="removeFromCart(${idx})">حذف</button></td>
+            </tr>`;
         });
-        document.getElementById('cartTotalQty').innerText = totalItems;
+        document.getElementById('cartTotalQty').innerText = total;
     }
 
-    window.removeFromCart = (index) => {
-        currentCart.splice(index, 1);
-        renderCart();
+    window.editQty = (idx) => {
+        const newQty = prompt("أدخل الكمية الجديدة:", currentCart[idx].qty);
+        if(newQty && !isNaN(newQty)) {
+            currentCart[idx].qty = parseInt(newQty);
+            renderCart();
+        }
     };
 
-    // طباعة الفاتورة قبل التأكيد
-    window.printReceipt = () => {
-        if(currentCart.length === 0) { alert("Cart is empty!"); return; }
-        
-        let printContent = `<div style="font-family: monospace; width: 300px; margin: auto; text-align: center;">`;
-        printContent += `<h2>FIRE SYSTEM</h2><p>Invoice Draft</p><hr>`;
-        currentCart.forEach(item => {
-            printContent += `<div style="display:flex; justify-content:space-between;"><span>${item.name} (x${item.qty})</span></div>`;
-        });
-        printContent += `<hr><p>Total Items: ${document.getElementById('cartTotalQty').innerText}</p></div>`;
-        
-        const printArea = document.getElementById('printArea');
-        printArea.innerHTML = printContent;
-        printArea.classList.remove('hidden');
-        window.print();
-        printArea.classList.add('hidden');
-    };
+    window.removeFromCart = (idx) => { currentCart.splice(idx, 1); renderCart(); };
 
-    // التأكيد (الخصم من المخزن)
     window.confirmSale = async () => {
         if(currentCart.length === 0) return;
-        if(!confirm("Are you sure you want to confirm this sale?")) return;
-
+        if(!confirm("تأكيد البيع وخصم الكميات؟")) return;
         try {
-            for (const item of currentCart) {
-                const ref = doc(db, "inventory", item.code);
-                await updateDoc(ref, { quantity: increment(-item.qty) });
-                // تسجيل في السجل (ممكن يتطور بعدين)
-                await addDoc(collection(db, "salesLog"), { code: item.code, name: item.name, qty: item.qty, date: new Date().toISOString() });
+            const billData = { items: currentCart, time: new Date().toLocaleString() };
+            await addDoc(collection(db, "bills"), billData);
+            for(let item of currentCart) {
+                await updateDoc(doc(db, "inventory", item.code), { quantity: increment(-item.qty) });
             }
-            alert("Sale Confirmed and stock updated!");
-            currentCart = [];
-            renderCart();
-            document.getElementById('sellInput').focus();
-        } catch(e) { console.error(e); alert("Error confirming sale."); }
+            alert("تمت العملية بنجاح");
+            currentCart = []; renderCart();
+        } catch(e) { alert("حدث خطأ!"); }
     };
 
-    // --- Inventory & Barcodes ---
+    // --- سجل الفواتير ---
+    async function loadSalesLogs() {
+        const q = query(collection(db, "bills"), orderBy("time", "desc"), limit(10));
+        onSnapshot(q, (snap) => {
+            const tbody = document.getElementById('logsTableBody');
+            tbody.innerHTML = '';
+            snap.forEach(d => {
+                const data = d.data();
+                const details = data.items.map(i => `${i.name} (${i.qty})`).join(' - ');
+                tbody.innerHTML += `<tr>
+                    <td>${d.id.substring(0,6)}</td>
+                    <td>${data.time}</td>
+                    <td>${details}</td>
+                    <td><button class="btn-red btn-small" onclick="returnBill('${d.id}')">إرجاع الفاتورة</button></td>
+                </tr>`;
+            });
+        });
+    }
+
+    window.returnBill = async (billId) => {
+        if(!confirm("هل أنت متأكد من إرجاع الفاتورة بالكامل للمخزن؟")) return;
+        const snap = await getDoc(doc(db, "bills", billId));
+        const items = snap.data().items;
+        for(let item of items) {
+            await updateDoc(doc(db, "inventory", item.code), { quantity: increment(item.qty) });
+        }
+        await deleteDoc(doc(db, "bills", billId));
+        alert("تم إرجاع المنتجات للمخزن وحذف الفاتورة");
+    };
+
+    // --- المخزن ---
     function loadStockRealtime() {
-        onSnapshot(collection(db, "inventory"), (querySnapshot) => {
+        onSnapshot(collection(db, "inventory"), (snap) => {
             const tbody = document.getElementById('stockTableBody');
             tbody.innerHTML = '';
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${doc.id}</td>
-                        <td>${data.name}</td>
-                        <td>${data.quantity}</td>
-                        <td>
-                            <button class="btn-small" onclick="editItem('${doc.id}', '${data.name}', ${data.quantity})">Edit</button>
-                            <button class="btn-small btn-green" onclick="printBarcode('${doc.id}', '${data.name}')">Print Barcode</button>
-                        </td>
-                    </tr>
-                `;
+            snap.forEach(d => {
+                const data = d.data();
+                tbody.innerHTML += `<tr>
+                    <td>${d.id}</td>
+                    <td>${data.name}</td>
+                    <td>${data.quantity}</td>
+                    <td>
+                        <button class="btn-small" onclick="editStock('${d.id}','${data.name}',${data.quantity})">تعديل</button>
+                        <button class="btn-small btn-green" onclick="printBC('${d.id}')">باركود</button>
+                    </td>
+                </tr>`;
             });
         });
     }
 
     window.updateStock = async () => {
-        const c = document.getElementById('pCode').value.trim();
-        const n = document.getElementById('pName').value.trim();
+        const c = document.getElementById('pCode').value;
+        const n = document.getElementById('pName').value;
         const q = parseInt(document.getElementById('pQty').value);
-        
-        if(c && n && !isNaN(q)) {
-            await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
-            document.getElementById('pCode').value = ''; document.getElementById('pName').value = ''; document.getElementById('pQty').value = '';
-        } else { alert("Fill all fields."); }
+        if(c && n) await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
+        document.querySelectorAll('#stockTab input').forEach(i => i.value = '');
     };
 
-    window.editItem = (code, name, qty) => {
-        document.getElementById('pCode').value = code;
-        document.getElementById('pName').value = name;
-        document.getElementById('pQty').value = qty;
-        document.getElementById('pCode').focus();
+    window.editStock = (c, n, q) => {
+        document.getElementById('pCode').value = c;
+        document.getElementById('pName').value = n;
+        document.getElementById('pQty').value = q;
     };
 
-    window.printBarcode = (code, name) => {
-        const printArea = document.getElementById('printArea');
-        printArea.innerHTML = `
-            <div style="text-align: center; margin-top: 50px;">
-                <p style="font-family: Arial; font-weight: bold;">${name}</p>
-                <svg id="barcode"></svg>
-            </div>
-        `;
-        printArea.classList.remove('hidden');
-        JsBarcode("#barcode", code, { format: "CODE128", displayValue: true, height: 50 });
+    window.printBC = (code) => {
+        const p = document.getElementById('printArea');
+        p.innerHTML = `<div style="text-align:center;"><svg id="bcs"></svg></div>`;
+        p.classList.remove('hidden');
+        JsBarcode("#bcs", code);
         window.print();
-        printArea.classList.add('hidden');
-    };
-
-    // --- Returns (المرتجعات) ---
-    window.processReturn = async () => {
-        const code = document.getElementById('returnCode').value.trim();
-        const qty = parseInt(document.getElementById('returnQty').value);
-        
-        if(!code || isNaN(qty) || qty <= 0) return;
-
-        const ref = doc(db, "inventory", code);
-        try {
-            const snap = await getDoc(ref);
-            if(snap.exists()) {
-                await updateDoc(ref, { quantity: increment(qty) });
-                
-                // إضافة لسجل المرتجعات الشاشة
-                const tbody = document.getElementById('returnsTableBody');
-                tbody.innerHTML = `<tr><td>${code}</td><td>${snap.data().name}</td><td>${qty}</td><td>${new Date().toLocaleTimeString()}</td></tr>` + tbody.innerHTML;
-                
-                alert("Returned to stock successfully.");
-                document.getElementById('returnCode').value = '';
-                document.getElementById('returnQty').value = '1';
-            } else {
-                alert("Product code not found in inventory.");
-            }
-        } catch(e) { console.error(e); }
+        p.classList.add('hidden');
     };
 </script>
 </body>
