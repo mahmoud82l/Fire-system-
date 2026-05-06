@@ -76,7 +76,9 @@
             border: none;
             cursor: pointer;
             font-size: 13px;
+            transition: 0.2s;
         }
+        button:hover { background: #004578; }
 
         .modal {
             display: none;
@@ -104,7 +106,7 @@
         .login-wrap {
             height: 100vh; display: flex; justify-content: center; align-items: center;
         }
-        .login-card { background: white; padding: 30px; border: 1px solid var(--border-color); width: 300px; }
+        .login-card { background: white; padding: 30px; border: 1px solid var(--border-color); width: 300px; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 
     </style>
 </head>
@@ -112,16 +114,17 @@
 
     <div id="loginPage" class="login-wrap">
         <div class="login-card">
-            <h3 style="margin-top:0">Fire System Login</h3>
-            <div id="authAlert" style="color:white; background-color:#d13438; padding:8px; font-size:12px; margin-bottom:10px; display:none; border-radius:3px;"></div>
+            <h3 style="margin-top:0; color: var(--primary-blue);">Fire System Login</h3>
             
-            <input type="text" id="username" placeholder="Username" style="width:100%" autocomplete="off">
+            <div id="authAlert" style="color:white; padding:8px; font-size:12px; margin-bottom:10px; display:none; border-radius:3px; text-align: center;"></div>
+            
+            <input type="text" id="username" placeholder="Username" style="width:100%; box-sizing: border-box;" autocomplete="off">
             <span style="font-size: 11px; display: block; margin-bottom: 10px; color: #888;">@firesystem.com</span>
             
-            <input type="password" id="password" placeholder="Password (Min 6 chars)" style="width:100%">
+            <input type="password" id="password" placeholder="Password (Min 6 chars)" style="width:100%; box-sizing: border-box;">
             
-            <button onclick="processAuth()" style="width:100%; margin-bottom:10px;">Login</button>
-            <button onclick="toggleRegister()" style="background:none; color:var(--primary-blue); border:1px solid var(--primary-blue); width:100%;">Create New Account</button>
+            <button onclick="processAuth()" style="width:100%; margin-bottom:10px; padding: 8px; font-weight: bold;">Login</button>
+            <button onclick="toggleRegister()" style="background:none; color:var(--primary-blue); border:1px solid var(--primary-blue); width:100%; padding: 8px;">Create New Account</button>
         </div>
     </div>
 
@@ -146,7 +149,6 @@
                         <tr>
                             <th>Code</th>
                             <th>Product Name</th>
-                            <th>Price</th>
                             <th>Time</th>
                         </tr>
                     </thead>
@@ -178,7 +180,7 @@
     <div id="searchOverlay" class="modal-overlay" onclick="closeSearch()"></div>
     <div id="searchModal" class="modal">
         <h4 style="margin:0 0 10px 0">Quick Search</h4>
-        <input type="text" id="modalSearchInput" placeholder="Search by name or code..." style="width:100%">
+        <input type="text" id="modalSearchInput" placeholder="Search by name or code..." style="width:100%; box-sizing: border-box;">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; font-size: 12px; margin-top:10px"></div>
     </div>
 
@@ -187,7 +189,7 @@
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // بيانات فايربيس بتاعتك إنت
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyCVWN1_9_9uNXBfwFpPJUZMSS17cvTQUV4",
         authDomain: "fire-system-4a0c3.firebaseapp.com",
@@ -202,7 +204,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Navigation Logic
+    // --- UI Navigation ---
     window.showTab = (tab) => {
         document.getElementById('posTab').classList.toggle('hidden', tab !== 'pos');
         document.getElementById('stockTab').classList.toggle('hidden', tab !== 'stock');
@@ -211,31 +213,44 @@
 
     window.confirmLogout = () => {
         if(confirm("Are you sure you want to log out?")) {
-            signOut(auth);
-            location.reload();
+            signOut(auth).then(() => {
+                location.reload();
+            });
         }
     };
 
-    // --- Authentication Logic (التسجيل والدخول) ---
-    
+    // --- Authentication (Login / Register) ---
     window.processAuth = async () => {
         const userField = document.getElementById('username').value.trim();
         const passField = document.getElementById('password').value;
         const alertBox = document.getElementById('authAlert');
 
         if (!userField || !passField) {
-            alertBox.innerText = "Error: Please enter both Username and Password.";
+            alertBox.innerText = "Error: Enter Username and Password.";
             alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = "#d13438"; // Red
             return;
         }
 
         const u = userField + "@firesystem.com";
+
         try {
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = "#0078D4"; // Blue
+            alertBox.innerText = "Checking credentials...";
+
             await signInWithEmailAndPassword(auth, u, passField);
-        } catch (e) { 
-            console.error(e);
-            alertBox.innerText = "Login Failed: Check username or password."; 
-            alertBox.style.display = 'block'; 
+            
+            alertBox.style.backgroundColor = "#107c10"; // Green
+            alertBox.innerText = "Login Successful!";
+        } catch (error) { 
+            console.error(error);
+            alertBox.style.backgroundColor = "#d13438"; // Red
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                alertBox.innerText = "Wrong username or password.";
+            } else {
+                alertBox.innerText = "Login Error. Check credentials."; 
+            }
         }
     };
 
@@ -245,59 +260,80 @@
         const alertBox = document.getElementById('authAlert');
 
         if (!userField || !passField) {
-            alertBox.innerText = "Error: Please enter Username and Password to create account.";
+            alertBox.innerText = "Enter Username and Password to register.";
             alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = "#d13438";
             return;
         }
 
         if (passField.length < 6) {
-            alertBox.innerText = "Error: Password must be at least 6 characters long.";
+            alertBox.innerText = "Password must be at least 6 characters.";
             alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = "#d13438";
             return;
         }
 
         const u = userField + "@firesystem.com";
+
         try { 
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = "#0078D4";
+            alertBox.innerText = "Creating account...";
+
             await createUserWithEmailAndPassword(auth, u, passField); 
-            alert("Success: System Account Created!"); 
+            
+            alertBox.style.backgroundColor = "#107c10";
+            alertBox.innerText = "Account Created Successfully!";
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
-            alertBox.style.display = 'none';
-        } catch (e) { 
-            console.error(e);
-            // ده هيعرضلك رسالة الخطأ الحقيقية لو الفايربيس رافض
-            alertBox.innerText = "System Error: " + e.message; 
-            alertBox.style.display = 'block';
+        } catch (error) { 
+            console.error(error);
+            alertBox.style.backgroundColor = "#d13438";
+            if(error.code === 'auth/email-already-in-use') {
+                alertBox.innerText = "Username already taken. Please Login.";
+            } else {
+                alertBox.innerText = "System Error: " + error.message; 
+            }
         }
     };
 
+    // Auto-redirect if already logged in
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainSystem').classList.remove('hidden');
+            document.getElementById('sellInput').focus();
             loadStockRealtime();
         }
     });
 
-    // POS Sales Logic
+    // --- POS Sales Logic ---
     window.sellItem = async () => {
-        const code = document.getElementById('sellInput').value;
+        const code = document.getElementById('sellInput').value.trim();
         if(!code) return;
         const ref = doc(db, "inventory", code);
-        const snap = await getDoc(ref);
-        if(snap.exists() && snap.data().quantity > 0) {
-            await updateDoc(ref, { quantity: increment(-1) });
-            addToSalesTable(code, snap.data().name);
-        } else { alert("Product not available or out of stock."); }
+        
+        try {
+            const snap = await getDoc(ref);
+            if(snap.exists() && snap.data().quantity > 0) {
+                await updateDoc(ref, { quantity: increment(-1) });
+                addToSalesTable(code, snap.data().name);
+            } else { 
+                alert("Product out of stock or not found."); 
+            }
+        } catch(e) {
+            console.error("Sale error: ", e);
+        }
         document.getElementById('sellInput').value = '';
+        document.getElementById('sellInput').focus();
     };
 
     function addToSalesTable(code, name) {
-        const row = `<tr><td>${code}</td><td>${name}</td><td>---</td><td>${new Date().toLocaleTimeString()}</td></tr>`;
+        const row = `<tr><td>${code}</td><td>${name}</td><td>${new Date().toLocaleTimeString()}</td></tr>`;
         document.getElementById('salesTableBody').insertAdjacentHTML('afterbegin', row);
     }
 
-    // Inventory Sync
+    // --- Inventory Sync ---
     function loadStockRealtime() {
         onSnapshot(collection(db, "inventory"), (querySnapshot) => {
             const tbody = document.getElementById('stockTableBody');
@@ -310,16 +346,24 @@
     }
 
     window.updateStock = async () => {
-        const c = document.getElementById('pCode').value;
-        const n = document.getElementById('pName').value;
+        const c = document.getElementById('pCode').value.trim();
+        const n = document.getElementById('pName').value.trim();
         const q = parseInt(document.getElementById('pQty').value);
-        if(c && n) await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
-        document.getElementById('pCode').value = ''; document.getElementById('pName').value = ''; document.getElementById('pQty').value = '';
+        
+        if(c && n && !isNaN(q)) {
+            await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
+            document.getElementById('pCode').value = ''; 
+            document.getElementById('pName').value = ''; 
+            document.getElementById('pQty').value = '';
+            document.getElementById('pCode').focus();
+        } else {
+            alert("Please fill all inventory fields correctly.");
+        }
     };
 
-    // Keyboard Shortcuts
+    // --- Keyboard Shortcuts & Security ---
     document.addEventListener('keydown', (e) => {
-        if (e.keyCode == 123) e.preventDefault(); // F12
+        if (e.keyCode == 123) e.preventDefault(); // Disable F12
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
             openSearch();
@@ -328,8 +372,9 @@
 
     document.getElementById('sellInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sellItem(); });
     document.getElementById('password').addEventListener('keypress', (e) => { if(e.key === 'Enter') processAuth(); });
+    document.getElementById('pQty').addEventListener('keypress', (e) => { if(e.key === 'Enter') updateStock(); });
 
-    // Search Modal Logic
+    // --- Search Modal ---
     function openSearch() {
         document.getElementById('searchOverlay').style.display = 'block';
         document.getElementById('searchModal').style.display = 'block';
