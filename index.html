@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire System - Professional POS</title>
+    <style>
+        :root {
+            --primary-blue: #005A9E;
+            --bg-gray: #f3f2f1;
+            --border-color: #d2d0ce;
+            --text-main: #323130;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text-main);
+            margin: 0;
+            overflow: hidden; 
+            user-select: none;
+        }
+
+        .top-nav {
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 20px;
+            height: 40px;
+        }
+
+        .system-title { font-weight: 700; color: var(--primary-blue); font-size: 16px; }
+
+        .nav-tabs { display: flex; gap: 10px; }
+        .tab-link {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-link.active { border-bottom: 2px solid var(--primary-blue); font-weight: 600; }
+
+        .logout-small {
+            font-size: 11px;
+            color: #a80000;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .content-area { padding: 15px; height: calc(100vh - 70px); overflow-y: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        th { background: #faf9f8; text-align: left; padding: 8px; border: 1px solid var(--border-color); }
+        td { padding: 6px 8px; border: 1px solid var(--border-color); }
+
+        .input-bar { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input { 
+            padding: 5px 8px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 2px; 
+            font-size: 13px;
+            width: 200px;
+        }
+        button {
+            padding: 5px 15px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            width: 400px;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 15px;
+            z-index: 1000;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 999;
+        }
+
+        .hidden { display: none; }
+        
+        .login-wrap {
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+        }
+        .login-card { background: white; padding: 30px; border: 1px solid var(--border-color); width: 300px; }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="loginPage" class="login-wrap">
+        <div class="login-card">
+            <h3 style="margin-top:0">Fire System Login</h3>
+            <div id="authAlert" style="color:white; background-color:#d13438; padding:8px; font-size:12px; margin-bottom:10px; display:none; border-radius:3px;"></div>
+            
+            <input type="text" id="username" placeholder="Username" style="width:100%" autocomplete="off">
+            <span style="font-size: 11px; display: block; margin-bottom: 10px; color: #888;">@firesystem.com</span>
+            
+            <input type="password" id="password" placeholder="Password (Min 6 chars)" style="width:100%">
+            
+            <button onclick="processAuth()" style="width:100%; margin-bottom:10px;">Login</button>
+            <button onclick="toggleRegister()" style="background:none; color:var(--primary-blue); border:1px solid var(--primary-blue); width:100%;">Create New Account</button>
+        </div>
+    </div>
+
+    <div id="mainSystem" class="hidden">
+        <nav class="top-nav">
+            <div class="system-title">FIRE SYSTEM v1.0</div>
+            <div class="nav-tabs">
+                <div class="tab-link active" onclick="showTab('pos')">Home (Sales)</div>
+                <div class="tab-link" onclick="showTab('stock')">Inventory (Stock)</div>
+            </div>
+            <div class="logout-small" onclick="confirmLogout()">Logout</div>
+        </nav>
+
+        <div class="content-area">
+            <div id="posTab">
+                <div class="input-bar">
+                    <input type="text" id="sellInput" placeholder="Scan Barcode / Code (Enter)">
+                    <span style="font-size:11px; color:#666">Press <b>Ctrl + S</b> to search</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="stockTab" class="hidden">
+                <div class="input-bar">
+                    <input type="text" id="pCode" placeholder="Code">
+                    <input type="text" id="pName" placeholder="Name">
+                    <input type="number" id="pQty" placeholder="Qty">
+                    <button onclick="updateStock()">Update Stock</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Current Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchOverlay" class="modal-overlay" onclick="closeSearch()"></div>
+    <div id="searchModal" class="modal">
+        <h4 style="margin:0 0 10px 0">Quick Search</h4>
+        <input type="text" id="modalSearchInput" placeholder="Search by name or code..." style="width:100%">
+        <div id="searchResults" style="max-height: 200px; overflow-y: auto; font-size: 12px; margin-top:10px"></div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // بيانات فايربيس بتاعتك إنت
+    const firebaseConfig = {
+        apiKey: "AIzaSyCVWN1_9_9uNXBfwFpPJUZMSS17cvTQUV4",
+        authDomain: "fire-system-4a0c3.firebaseapp.com",
+        projectId: "fire-system-4a0c3",
+        storageBucket: "fire-system-4a0c3.firebasestorage.app",
+        messagingSenderId: "34578512308",
+        appId: "1:34578512308:web:d05b93e97cbe0fe30bdae1",
+        measurementId: "G-TNHMC7Z65N"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Navigation Logic
+    window.showTab = (tab) => {
+        document.getElementById('posTab').classList.toggle('hidden', tab !== 'pos');
+        document.getElementById('stockTab').classList.toggle('hidden', tab !== 'stock');
+        document.querySelectorAll('.tab-link').forEach(el => el.classList.toggle('active', el.innerText.toLowerCase().includes(tab)));
+    };
+
+    window.confirmLogout = () => {
+        if(confirm("Are you sure you want to log out?")) {
+            signOut(auth);
+            location.reload();
+        }
+    };
+
+    // --- Authentication Logic (التسجيل والدخول) ---
+    
+    window.processAuth = async () => {
+        const userField = document.getElementById('username').value.trim();
+        const passField = document.getElementById('password').value;
+        const alertBox = document.getElementById('authAlert');
+
+        if (!userField || !passField) {
+            alertBox.innerText = "Error: Please enter both Username and Password.";
+            alertBox.style.display = 'block';
+            return;
+        }
+
+        const u = userField + "@firesystem.com";
+        try {
+            await signInWithEmailAndPassword(auth, u, passField);
+        } catch (e) { 
+            console.error(e);
+            alertBox.innerText = "Login Failed: Check username or password."; 
+            alertBox.style.display = 'block'; 
+        }
+    };
+
+    window.toggleRegister = async () => {
+        const userField = document.getElementById('username').value.trim();
+        const passField = document.getElementById('password').value;
+        const alertBox = document.getElementById('authAlert');
+
+        if (!userField || !passField) {
+            alertBox.innerText = "Error: Please enter Username and Password to create account.";
+            alertBox.style.display = 'block';
+            return;
+        }
+
+        if (passField.length < 6) {
+            alertBox.innerText = "Error: Password must be at least 6 characters long.";
+            alertBox.style.display = 'block';
+            return;
+        }
+
+        const u = userField + "@firesystem.com";
+        try { 
+            await createUserWithEmailAndPassword(auth, u, passField); 
+            alert("Success: System Account Created!"); 
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            alertBox.style.display = 'none';
+        } catch (e) { 
+            console.error(e);
+            // ده هيعرضلك رسالة الخطأ الحقيقية لو الفايربيس رافض
+            alertBox.innerText = "System Error: " + e.message; 
+            alertBox.style.display = 'block';
+        }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainSystem').classList.remove('hidden');
+            loadStockRealtime();
+        }
+    });
+
+    // POS Sales Logic
+    window.sellItem = async () => {
+        const code = document.getElementById('sellInput').value;
+        if(!code) return;
+        const ref = doc(db, "inventory", code);
+        const snap = await getDoc(ref);
+        if(snap.exists() && snap.data().quantity > 0) {
+            await updateDoc(ref, { quantity: increment(-1) });
+            addToSalesTable(code, snap.data().name);
+        } else { alert("Product not available or out of stock."); }
+        document.getElementById('sellInput').value = '';
+    };
+
+    function addToSalesTable(code, name) {
+        const row = `<tr><td>${code}</td><td>${name}</td><td>---</td><td>${new Date().toLocaleTimeString()}</td></tr>`;
+        document.getElementById('salesTableBody').insertAdjacentHTML('afterbegin', row);
+    }
+
+    // Inventory Sync
+    function loadStockRealtime() {
+        onSnapshot(collection(db, "inventory"), (querySnapshot) => {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                tbody.innerHTML += `<tr><td>${doc.id}</td><td>${data.name}</td><td>${data.quantity}</td></tr>`;
+            });
+        });
+    }
+
+    window.updateStock = async () => {
+        const c = document.getElementById('pCode').value;
+        const n = document.getElementById('pName').value;
+        const q = parseInt(document.getElementById('pQty').value);
+        if(c && n) await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
+        document.getElementById('pCode').value = ''; document.getElementById('pName').value = ''; document.getElementById('pQty').value = '';
+    };
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.keyCode == 123) e.preventDefault(); // F12
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            openSearch();
+        }
+    });
+
+    document.getElementById('sellInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sellItem(); });
+    document.getElementById('password').addEventListener('keypress', (e) => { if(e.key === 'Enter') processAuth(); });
+
+    // Search Modal Logic
+    function openSearch() {
+        document.getElementById('searchOverlay').style.display = 'block';
+        document.getElementById('searchModal').style.display = 'block';
+        document.getElementById('modalSearchInput').focus();
+    }
+    window.closeSearch = () => {
+        document.getElementById('searchOverlay').style.display = 'none';
+        document.getElementById('searchModal').style.display = 'none';
+    };
+</script>
+</body>
+</html>
