@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire System - Professional POS</title>
+    <title>Fire System - Professional POS v2</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
     <style>
         :root {
             --primary-blue: #005A9E;
@@ -42,218 +45,168 @@
         }
         .tab-link.active { border-bottom: 2px solid var(--primary-blue); font-weight: 600; }
 
-        .logout-small {
-            font-size: 11px;
-            color: #a80000;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        .logout-small { font-size: 11px; color: #a80000; cursor: pointer; text-decoration: underline; }
 
         .content-area { padding: 15px; height: calc(100vh - 70px); overflow-y: auto; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            font-size: 13px;
-            margin-top: 10px;
-        }
+        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin-top: 10px; }
         th { background: #faf9f8; text-align: left; padding: 8px; border: 1px solid var(--border-color); }
         td { padding: 6px 8px; border: 1px solid var(--border-color); }
 
         .input-bar { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        input { 
-            padding: 8px 10px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 4px; 
-            font-size: 13px;
-            width: 100%;
-            box-sizing: border-box;
-        }
+        input { padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; }
         input:focus { outline: none; border-color: var(--primary-blue); }
 
         button {
-            padding: 8px 15px;
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            border-radius: 4px;
-            font-weight: 600;
-            width: 100%;
-            transition: 0.2s;
+            padding: 8px 15px; background: var(--primary-blue); color: white; border: none;
+            cursor: pointer; font-size: 13px; border-radius: 4px; font-weight: 600; transition: 0.2s;
         }
         button:hover { background: #004578; }
-        button:disabled { background: #a19f9d; cursor: not-allowed; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -20%);
-            width: 400px;
-            background: white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border-radius: 4px;
-            padding: 15px;
-            z-index: 1000;
-        }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 999;
-        }
+        
+        .btn-green { background: #107c10; }
+        .btn-green:hover { background: #0b5a0b; }
+        .btn-red { background: #d13438; }
+        .btn-red:hover { background: #a80000; }
+        .btn-small { padding: 4px 8px; font-size: 11px; margin-right: 5px;}
 
         .hidden { display: none !important; }
         
-        .login-wrap {
-            height: 100vh; display: flex; justify-content: center; align-items: center;
-        }
-        .login-card { 
-            background: white; 
-            padding: 25px; 
-            border: 1px solid var(--border-color); 
-            width: 320px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        .login-wrap { height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .login-card { background: white; padding: 25px; border: 1px solid var(--border-color); width: 320px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        .auth-nav { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #605e5c; font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; }
+        .auth-tab.active { color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue); }
+
+        .alert-box { color: white; padding: 8px; font-size: 12px; margin-bottom: 15px; display: none; border-radius: 4px; text-align: center; }
+
+        /* منطقة الفاتورة */
+        .cart-summary {
+            background: #fff; border: 1px solid var(--border-color); padding: 15px; margin-top: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* ستايل التبويبات بتاعت الدخول والإنشاء */
-        .auth-nav {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
+        /* الطباعة - إخفاء كل حاجة ماعدا الفاتورة أو الباركود */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
         }
-        .auth-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            cursor: pointer;
-            color: #605e5c;
-            font-weight: 600;
-            font-size: 14px;
-            border-bottom: 2px solid transparent;
-        }
-        .auth-tab.active {
-            color: var(--primary-blue);
-            border-bottom: 2px solid var(--primary-blue);
-        }
-
-        .alert-box {
-            color: white; 
-            padding: 8px; 
-            font-size: 12px; 
-            margin-bottom: 15px; 
-            display: none; 
-            border-radius: 4px; 
-            text-align: center;
-        }
-
-        .suffix-text { font-size: 11px; display: block; margin-bottom: 15px; color: #888; margin-top: -5px;}
-        .input-group { margin-bottom: 15px; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
+
+    <div id="printArea" class="hidden"></div>
 
     <div id="loginPage" class="login-wrap">
         <div class="login-card">
-            
             <div class="auth-nav">
                 <div id="tabLogin" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
                 <div id="tabRegister" class="auth-tab" onclick="switchAuthTab('register')">Create Account</div>
             </div>
-
             <div id="authAlert" class="alert-box"></div>
             
             <div id="loginForm">
-                <div class="input-group">
-                    <input type="text" id="loginUser" placeholder="Username" autocomplete="off">
-                    <span class="suffix-text">@firesystem.com</span>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="loginPass" placeholder="Password">
-                </div>
-                <button id="loginBtn" onclick="processAuth()">Login to System</button>
+                <input type="text" id="loginUser" placeholder="Username" style="width: 100%; margin-bottom: 5px;">
+                <span style="font-size: 11px; display: block; margin-bottom: 15px; color: #888;">@firesystem.com</span>
+                <input type="password" id="loginPass" placeholder="Password" style="width: 100%; margin-bottom: 15px;">
+                <button id="loginBtn" onclick="processAuth()" style="width: 100%;">Login to System</button>
             </div>
 
             <div id="registerForm" class="hidden">
-                <div class="input-group">
-                    <input type="text" id="regUser" placeholder="New Username" autocomplete="off">
-                    <span class="suffix-text">@firesystem.com</span>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="regPass" placeholder="New Password (Min 6 chars)">
-                </div>
-                <button id="regBtn" onclick="processRegister()" style="background-color: #107c10;">Create & Login</button>
+                <input type="text" id="regUser" placeholder="New Username" style="width: 100%; margin-bottom: 5px;">
+                <span style="font-size: 11px; display: block; margin-bottom: 15px; color: #888;">@firesystem.com</span>
+                <input type="password" id="regPass" placeholder="New Password (Min 6 chars)" style="width: 100%; margin-bottom: 15px;">
+                <button id="regBtn" onclick="processRegister()" class="btn-green" style="width: 100%;">Create & Login</button>
             </div>
-
         </div>
     </div>
 
     <div id="mainSystem" class="hidden">
         <nav class="top-nav">
-            <div class="system-title">FIRE SYSTEM v1.0</div>
+            <div class="system-title">FIRE SYSTEM v2.0</div>
             <div class="nav-tabs">
-                <div class="tab-link active" onclick="showTab('pos')">Home (Sales)</div>
-                <div class="tab-link" onclick="showTab('stock')">Inventory (Stock)</div>
+                <div class="tab-link active" onclick="showTab('pos')">POS (Sales)</div>
+                <div class="tab-link" onclick="showTab('stock')">Inventory</div>
+                <div class="tab-link" onclick="showTab('returns')">Returns</div>
             </div>
             <div class="logout-small" onclick="confirmLogout()">Logout</div>
         </nav>
 
         <div class="content-area">
+            
             <div id="posTab">
-                <div class="input-bar" style="width: 400px;">
-                    <input type="text" id="sellInput" placeholder="Scan Barcode / Code (Enter)">
-                    <span style="font-size:11px; color:#666; width: 150px;">Press <b>Ctrl + S</b> to search</span>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Product Name</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salesTableBody"></tbody>
-                </table>
-            </div>
-
-            <div id="stockTab" class="hidden">
-                <div class="input-bar" style="width: 500px;">
-                    <input type="text" id="pCode" placeholder="Code">
-                    <input type="text" id="pName" placeholder="Name">
-                    <input type="number" id="pQty" placeholder="Qty">
-                    <button onclick="updateStock()" style="width: 150px;">Update Stock</button>
+                <div class="input-bar">
+                    <input type="text" id="sellInput" placeholder="Scan Barcode (Enter)" style="width: 300px;">
                 </div>
                 <table>
                     <thead>
                         <tr>
                             <th>Item Code</th>
+                            <th>Product Name</th>
+                            <th>Qty</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartTableBody"></tbody>
+                </table>
+                
+                <div class="cart-summary">
+                    <div>
+                        <strong>Total Items: <span id="cartTotalQty">0</span></strong>
+                    </div>
+                    <div>
+                        <button onclick="printReceipt()" style="margin-right: 10px;">Print Receipt (Draft)</button>
+                        <button onclick="confirmSale()" class="btn-green">Confirm Sale (Deduct Stock)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stockTab" class="hidden">
+                <div class="input-bar">
+                    <input type="text" id="pCode" placeholder="Global/Internal Barcode" style="width: 200px;">
+                    <input type="text" id="pName" placeholder="Product Name">
+                    <input type="number" id="pQty" placeholder="Qty">
+                    <button onclick="updateStock()">Save/Edit Stock</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Barcode (ID)</th>
                             <th>Item Name</th>
                             <th>Current Stock</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="stockTableBody"></tbody>
                 </table>
             </div>
-        </div>
-    </div>
 
-    <div id="searchOverlay" class="modal-overlay" onclick="closeSearch()"></div>
-    <div id="searchModal" class="modal">
-        <h4 style="margin:0 0 10px 0">Quick Search</h4>
-        <input type="text" id="modalSearchInput" placeholder="Search by name or code...">
-        <div id="searchResults" style="max-height: 200px; overflow-y: auto; font-size: 12px; margin-top:10px"></div>
+            <div id="returnsTab" class="hidden">
+                <div class="input-bar">
+                    <input type="text" id="returnCode" placeholder="Product Barcode to Return" style="width: 250px;">
+                    <input type="number" id="returnQty" placeholder="Qty to Return" value="1" style="width: 100px;">
+                    <button onclick="processReturn()" class="btn-red">Process Return (Add to Stock)</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Returned Barcode</th>
+                            <th>Product Name</th>
+                            <th>Qty Returned</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnsTableBody"></tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCVWN1_9_9uNXBfwFpPJUZMSS17cvTQUV4",
@@ -269,98 +222,54 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // التنقل بين الشاشات
+    // متغيرات الفاتورة المبدئية
+    let currentCart = [];
+
+    // --- UI Navigation ---
     window.showTab = (tab) => {
         document.getElementById('posTab').classList.toggle('hidden', tab !== 'pos');
         document.getElementById('stockTab').classList.toggle('hidden', tab !== 'stock');
+        document.getElementById('returnsTab').classList.toggle('hidden', tab !== 'returns');
         document.querySelectorAll('.tab-link').forEach(el => el.classList.toggle('active', el.innerText.toLowerCase().includes(tab)));
+        if(tab === 'pos') document.getElementById('sellInput').focus();
     };
 
-    window.confirmLogout = () => {
-        if(confirm("Are you sure you want to log out?")) {
-            signOut(auth).then(() => { location.reload(); });
-        }
-    };
-
-    // التنقل بين تبويبات الدخول وإنشاء الحساب
     window.switchAuthTab = (tab) => {
         document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
         document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
         document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
         document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-        document.getElementById('authAlert').style.display = 'none'; // مسح أي رسايل خطأ قديمة
     };
 
     function showAlert(msg, color) {
         const box = document.getElementById('authAlert');
-        box.innerText = msg;
-        box.style.backgroundColor = color;
-        box.style.display = 'block';
+        box.innerText = msg; box.style.backgroundColor = color; box.style.display = 'block';
     }
 
-    // تسجيل الدخول
+    // --- Authentication ---
     window.processAuth = async () => {
         const uField = document.getElementById('loginUser').value.trim();
         const pField = document.getElementById('loginPass').value;
-        const btn = document.getElementById('loginBtn');
-
-        if (!uField || !pField) {
-            showAlert("Please enter both Username and Password.", "#d13438");
-            return;
-        }
-
-        // قفل الزرار عشان ميتداسش مرتين
-        btn.disabled = true;
-        btn.innerText = "Please wait...";
-        showAlert("Connecting to server...", "#0078D4");
-
+        if (!uField || !pField) { showAlert("Enter Username & Password.", "#d13438"); return; }
+        
         try {
+            showAlert("Connecting...", "#0078D4");
             await signInWithEmailAndPassword(auth, uField + "@firesystem.com", pField);
-            // لو نجح مش محتاج أفتح الزرار تاني عشان هينقله للصفحة اللي بعدها
-        } catch (error) { 
-            btn.disabled = false;
-            btn.innerText = "Login to System";
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                showAlert("Login Failed: Incorrect username or password.", "#d13438");
-            } else {
-                showAlert("Error: " + error.message, "#d13438"); 
-            }
-        }
+        } catch (error) { showAlert("Login Failed.", "#d13438"); }
     };
 
-    // إنشاء حساب جديد
     window.processRegister = async () => {
         const uField = document.getElementById('regUser').value.trim();
         const pField = document.getElementById('regPass').value;
-        const btn = document.getElementById('regBtn');
-
-        if (!uField || !pField) {
-            showAlert("Enter Username and Password to create account.", "#d13438");
-            return;
-        }
-        if (pField.length < 6) {
-            showAlert("Password must be at least 6 characters.", "#d13438");
-            return;
-        }
-
-        // قفل الزرار
-        btn.disabled = true;
-        btn.innerText = "Creating account...";
-        showAlert("Setting up your workspace...", "#0078D4");
-
+        if (!uField || pField.length < 6) { showAlert("Invalid data.", "#d13438"); return; }
+        
         try { 
+            showAlert("Creating...", "#0078D4");
             await createUserWithEmailAndPassword(auth, uField + "@firesystem.com", pField); 
-            // مش محتاجين نرجع الزرار لأصله لأنه هيدخل على السيستم أوتوماتيك
-        } catch (error) { 
-            btn.disabled = false;
-            btn.innerText = "Create & Login";
-            if(error.code === 'auth/email-already-in-use') {
-                showAlert("This Username already exists! Go to Login tab.", "#d13438");
-            } else {
-                showAlert("Error: " + error.message, "#d13438"); 
-            }
-        }
+        } catch (error) { showAlert("Error: " + error.message, "#d13438"); }
     };
+
+    window.confirmLogout = () => { if(confirm("Log out?")) signOut(auth).then(() => location.reload()); };
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -371,34 +280,111 @@
         }
     });
 
-    // POS و المخزن (زي ما هما شغالين تمام)
-    window.sellItem = async () => {
-        const code = document.getElementById('sellInput').value.trim();
-        if(!code) return;
-        const ref = doc(db, "inventory", code);
-        try {
-            const snap = await getDoc(ref);
+    // --- POS: Cart System ---
+    document.getElementById('sellInput').addEventListener('keypress', async (e) => { 
+        if(e.key === 'Enter') {
+            const code = e.target.value.trim();
+            if(!code) return;
+            
+            // Check Firebase if item exists
+            const docRef = doc(db, "inventory", code);
+            const snap = await getDoc(docRef);
+            
             if(snap.exists() && snap.data().quantity > 0) {
-                await updateDoc(ref, { quantity: increment(-1) });
-                addToSalesTable(code, snap.data().name);
-            } else { alert("Product out of stock or not found."); }
-        } catch(e) { console.error(e); }
-        document.getElementById('sellInput').value = '';
-        document.getElementById('sellInput').focus();
-    };
+                // ضيف للسلة المبدئية بدل الخصم المباشر
+                const existingItem = currentCart.find(item => item.code === code);
+                if(existingItem) {
+                    existingItem.qty += 1;
+                } else {
+                    currentCart.push({ code: code, name: snap.data().name, qty: 1 });
+                }
+                renderCart();
+            } else {
+                alert("Product out of stock or not registered!");
+            }
+            e.target.value = '';
+        } 
+    });
 
-    function addToSalesTable(code, name) {
-        const row = `<tr><td>${code}</td><td>${name}</td><td>${new Date().toLocaleTimeString()}</td></tr>`;
-        document.getElementById('salesTableBody').insertAdjacentHTML('afterbegin', row);
+    function renderCart() {
+        const tbody = document.getElementById('cartTableBody');
+        tbody.innerHTML = '';
+        let totalItems = 0;
+
+        currentCart.forEach((item, index) => {
+            totalItems += item.qty;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.code}</td>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td><button class="btn-red btn-small" onclick="removeFromCart(${index})">Remove</button></td>
+                </tr>
+            `;
+        });
+        document.getElementById('cartTotalQty').innerText = totalItems;
     }
 
+    window.removeFromCart = (index) => {
+        currentCart.splice(index, 1);
+        renderCart();
+    };
+
+    // طباعة الفاتورة قبل التأكيد
+    window.printReceipt = () => {
+        if(currentCart.length === 0) { alert("Cart is empty!"); return; }
+        
+        let printContent = `<div style="font-family: monospace; width: 300px; margin: auto; text-align: center;">`;
+        printContent += `<h2>FIRE SYSTEM</h2><p>Invoice Draft</p><hr>`;
+        currentCart.forEach(item => {
+            printContent += `<div style="display:flex; justify-content:space-between;"><span>${item.name} (x${item.qty})</span></div>`;
+        });
+        printContent += `<hr><p>Total Items: ${document.getElementById('cartTotalQty').innerText}</p></div>`;
+        
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = printContent;
+        printArea.classList.remove('hidden');
+        window.print();
+        printArea.classList.add('hidden');
+    };
+
+    // التأكيد (الخصم من المخزن)
+    window.confirmSale = async () => {
+        if(currentCart.length === 0) return;
+        if(!confirm("Are you sure you want to confirm this sale?")) return;
+
+        try {
+            for (const item of currentCart) {
+                const ref = doc(db, "inventory", item.code);
+                await updateDoc(ref, { quantity: increment(-item.qty) });
+                // تسجيل في السجل (ممكن يتطور بعدين)
+                await addDoc(collection(db, "salesLog"), { code: item.code, name: item.name, qty: item.qty, date: new Date().toISOString() });
+            }
+            alert("Sale Confirmed and stock updated!");
+            currentCart = [];
+            renderCart();
+            document.getElementById('sellInput').focus();
+        } catch(e) { console.error(e); alert("Error confirming sale."); }
+    };
+
+    // --- Inventory & Barcodes ---
     function loadStockRealtime() {
         onSnapshot(collection(db, "inventory"), (querySnapshot) => {
             const tbody = document.getElementById('stockTableBody');
             tbody.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                tbody.innerHTML += `<tr><td>${doc.id}</td><td>${data.name}</td><td>${data.quantity}</td></tr>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${doc.id}</td>
+                        <td>${data.name}</td>
+                        <td>${data.quantity}</td>
+                        <td>
+                            <button class="btn-small" onclick="editItem('${doc.id}', '${data.name}', ${data.quantity})">Edit</button>
+                            <button class="btn-small btn-green" onclick="printBarcode('${doc.id}', '${data.name}')">Print Barcode</button>
+                        </td>
+                    </tr>
+                `;
             });
         });
     }
@@ -407,34 +393,58 @@
         const c = document.getElementById('pCode').value.trim();
         const n = document.getElementById('pName').value.trim();
         const q = parseInt(document.getElementById('pQty').value);
+        
         if(c && n && !isNaN(q)) {
             await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
-            document.getElementById('pCode').value = ''; 
-            document.getElementById('pName').value = ''; 
-            document.getElementById('pQty').value = '';
-            document.getElementById('pCode').focus();
-        } else { alert("Please fill all fields correctly."); }
+            document.getElementById('pCode').value = ''; document.getElementById('pName').value = ''; document.getElementById('pQty').value = '';
+        } else { alert("Fill all fields."); }
     };
 
-    // اختصارات الكيبورد
-    document.addEventListener('keydown', (e) => {
-        if (e.keyCode == 123) e.preventDefault();
-        if (e.ctrlKey && e.key === 's') { e.preventDefault(); openSearch(); }
-    });
+    window.editItem = (code, name, qty) => {
+        document.getElementById('pCode').value = code;
+        document.getElementById('pName').value = name;
+        document.getElementById('pQty').value = qty;
+        document.getElementById('pCode').focus();
+    };
 
-    document.getElementById('sellInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sellItem(); });
-    document.getElementById('loginPass').addEventListener('keypress', (e) => { if(e.key === 'Enter') processAuth(); });
-    document.getElementById('regPass').addEventListener('keypress', (e) => { if(e.key === 'Enter') processRegister(); });
-    document.getElementById('pQty').addEventListener('keypress', (e) => { if(e.key === 'Enter') updateStock(); });
+    window.printBarcode = (code, name) => {
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = `
+            <div style="text-align: center; margin-top: 50px;">
+                <p style="font-family: Arial; font-weight: bold;">${name}</p>
+                <svg id="barcode"></svg>
+            </div>
+        `;
+        printArea.classList.remove('hidden');
+        JsBarcode("#barcode", code, { format: "CODE128", displayValue: true, height: 50 });
+        window.print();
+        printArea.classList.add('hidden');
+    };
 
-    function openSearch() {
-        document.getElementById('searchOverlay').style.display = 'block';
-        document.getElementById('searchModal').style.display = 'block';
-        document.getElementById('modalSearchInput').focus();
-    }
-    window.closeSearch = () => {
-        document.getElementById('searchOverlay').style.display = 'none';
-        document.getElementById('searchModal').style.display = 'none';
+    // --- Returns (المرتجعات) ---
+    window.processReturn = async () => {
+        const code = document.getElementById('returnCode').value.trim();
+        const qty = parseInt(document.getElementById('returnQty').value);
+        
+        if(!code || isNaN(qty) || qty <= 0) return;
+
+        const ref = doc(db, "inventory", code);
+        try {
+            const snap = await getDoc(ref);
+            if(snap.exists()) {
+                await updateDoc(ref, { quantity: increment(qty) });
+                
+                // إضافة لسجل المرتجعات الشاشة
+                const tbody = document.getElementById('returnsTableBody');
+                tbody.innerHTML = `<tr><td>${code}</td><td>${snap.data().name}</td><td>${qty}</td><td>${new Date().toLocaleTimeString()}</td></tr>` + tbody.innerHTML;
+                
+                alert("Returned to stock successfully.");
+                document.getElementById('returnCode').value = '';
+                document.getElementById('returnQty').value = '1';
+            } else {
+                alert("Product code not found in inventory.");
+            }
+        } catch(e) { console.error(e); }
     };
 </script>
 </body>
