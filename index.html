@@ -63,22 +63,29 @@
 
         .input-bar { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         input { 
-            padding: 5px 8px; 
+            padding: 8px 10px; 
             border: 1px solid var(--border-color); 
-            border-radius: 2px; 
+            border-radius: 4px; 
             font-size: 13px;
-            width: 200px;
+            width: 100%;
+            box-sizing: border-box;
         }
+        input:focus { outline: none; border-color: var(--primary-blue); }
+
         button {
-            padding: 5px 15px;
+            padding: 8px 15px;
             background: var(--primary-blue);
             color: white;
             border: none;
             cursor: pointer;
             font-size: 13px;
+            border-radius: 4px;
+            font-weight: 600;
+            width: 100%;
             transition: 0.2s;
         }
         button:hover { background: #004578; }
+        button:disabled { background: #a19f9d; cursor: not-allowed; }
 
         .modal {
             display: none;
@@ -101,30 +108,89 @@
             z-index: 999;
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
         .login-wrap {
             height: 100vh; display: flex; justify-content: center; align-items: center;
         }
-        .login-card { background: white; padding: 30px; border: 1px solid var(--border-color); width: 300px; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .login-card { 
+            background: white; 
+            padding: 25px; 
+            border: 1px solid var(--border-color); 
+            width: 320px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
 
+        /* ستايل التبويبات بتاعت الدخول والإنشاء */
+        .auth-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #605e5c;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+        }
+        .auth-tab.active {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--primary-blue);
+        }
+
+        .alert-box {
+            color: white; 
+            padding: 8px; 
+            font-size: 12px; 
+            margin-bottom: 15px; 
+            display: none; 
+            border-radius: 4px; 
+            text-align: center;
+        }
+
+        .suffix-text { font-size: 11px; display: block; margin-bottom: 15px; color: #888; margin-top: -5px;}
+        .input-group { margin-bottom: 15px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
     <div id="loginPage" class="login-wrap">
         <div class="login-card">
-            <h3 style="margin-top:0; color: var(--primary-blue);">Fire System Login</h3>
             
-            <div id="authAlert" style="color:white; padding:8px; font-size:12px; margin-bottom:10px; display:none; border-radius:3px; text-align: center;"></div>
+            <div class="auth-nav">
+                <div id="tabLogin" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div id="tabRegister" class="auth-tab" onclick="switchAuthTab('register')">Create Account</div>
+            </div>
+
+            <div id="authAlert" class="alert-box"></div>
             
-            <input type="text" id="username" placeholder="Username" style="width:100%; box-sizing: border-box;" autocomplete="off">
-            <span style="font-size: 11px; display: block; margin-bottom: 10px; color: #888;">@firesystem.com</span>
-            
-            <input type="password" id="password" placeholder="Password (Min 6 chars)" style="width:100%; box-sizing: border-box;">
-            
-            <button onclick="processAuth()" style="width:100%; margin-bottom:10px; padding: 8px; font-weight: bold;">Login</button>
-            <button onclick="toggleRegister()" style="background:none; color:var(--primary-blue); border:1px solid var(--primary-blue); width:100%; padding: 8px;">Create New Account</button>
+            <div id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="loginUser" placeholder="Username" autocomplete="off">
+                    <span class="suffix-text">@firesystem.com</span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="loginPass" placeholder="Password">
+                </div>
+                <button id="loginBtn" onclick="processAuth()">Login to System</button>
+            </div>
+
+            <div id="registerForm" class="hidden">
+                <div class="input-group">
+                    <input type="text" id="regUser" placeholder="New Username" autocomplete="off">
+                    <span class="suffix-text">@firesystem.com</span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="regPass" placeholder="New Password (Min 6 chars)">
+                </div>
+                <button id="regBtn" onclick="processRegister()" style="background-color: #107c10;">Create & Login</button>
+            </div>
+
         </div>
     </div>
 
@@ -140,9 +206,9 @@
 
         <div class="content-area">
             <div id="posTab">
-                <div class="input-bar">
+                <div class="input-bar" style="width: 400px;">
                     <input type="text" id="sellInput" placeholder="Scan Barcode / Code (Enter)">
-                    <span style="font-size:11px; color:#666">Press <b>Ctrl + S</b> to search</span>
+                    <span style="font-size:11px; color:#666; width: 150px;">Press <b>Ctrl + S</b> to search</span>
                 </div>
                 <table>
                     <thead>
@@ -157,11 +223,11 @@
             </div>
 
             <div id="stockTab" class="hidden">
-                <div class="input-bar">
+                <div class="input-bar" style="width: 500px;">
                     <input type="text" id="pCode" placeholder="Code">
                     <input type="text" id="pName" placeholder="Name">
                     <input type="number" id="pQty" placeholder="Qty">
-                    <button onclick="updateStock()">Update Stock</button>
+                    <button onclick="updateStock()" style="width: 150px;">Update Stock</button>
                 </div>
                 <table>
                     <thead>
@@ -180,7 +246,7 @@
     <div id="searchOverlay" class="modal-overlay" onclick="closeSearch()"></div>
     <div id="searchModal" class="modal">
         <h4 style="margin:0 0 10px 0">Quick Search</h4>
-        <input type="text" id="modalSearchInput" placeholder="Search by name or code..." style="width:100%; box-sizing: border-box;">
+        <input type="text" id="modalSearchInput" placeholder="Search by name or code...">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; font-size: 12px; margin-top:10px"></div>
     </div>
 
@@ -189,7 +255,6 @@
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyCVWN1_9_9uNXBfwFpPJUZMSS17cvTQUV4",
         authDomain: "fire-system-4a0c3.firebaseapp.com",
@@ -204,7 +269,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- UI Navigation ---
+    // التنقل بين الشاشات
     window.showTab = (tab) => {
         document.getElementById('posTab').classList.toggle('hidden', tab !== 'pos');
         document.getElementById('stockTab').classList.toggle('hidden', tab !== 'stock');
@@ -213,91 +278,90 @@
 
     window.confirmLogout = () => {
         if(confirm("Are you sure you want to log out?")) {
-            signOut(auth).then(() => {
-                location.reload();
-            });
+            signOut(auth).then(() => { location.reload(); });
         }
     };
 
-    // --- Authentication (Login / Register) ---
-    window.processAuth = async () => {
-        const userField = document.getElementById('username').value.trim();
-        const passField = document.getElementById('password').value;
-        const alertBox = document.getElementById('authAlert');
+    // التنقل بين تبويبات الدخول وإنشاء الحساب
+    window.switchAuthTab = (tab) => {
+        document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+        document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+        document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+        document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+        document.getElementById('authAlert').style.display = 'none'; // مسح أي رسايل خطأ قديمة
+    };
 
-        if (!userField || !passField) {
-            alertBox.innerText = "Error: Enter Username and Password.";
-            alertBox.style.display = 'block';
-            alertBox.style.backgroundColor = "#d13438"; // Red
+    function showAlert(msg, color) {
+        const box = document.getElementById('authAlert');
+        box.innerText = msg;
+        box.style.backgroundColor = color;
+        box.style.display = 'block';
+    }
+
+    // تسجيل الدخول
+    window.processAuth = async () => {
+        const uField = document.getElementById('loginUser').value.trim();
+        const pField = document.getElementById('loginPass').value;
+        const btn = document.getElementById('loginBtn');
+
+        if (!uField || !pField) {
+            showAlert("Please enter both Username and Password.", "#d13438");
             return;
         }
 
-        const u = userField + "@firesystem.com";
+        // قفل الزرار عشان ميتداسش مرتين
+        btn.disabled = true;
+        btn.innerText = "Please wait...";
+        showAlert("Connecting to server...", "#0078D4");
 
         try {
-            alertBox.style.display = 'block';
-            alertBox.style.backgroundColor = "#0078D4"; // Blue
-            alertBox.innerText = "Checking credentials...";
-
-            await signInWithEmailAndPassword(auth, u, passField);
-            
-            alertBox.style.backgroundColor = "#107c10"; // Green
-            alertBox.innerText = "Login Successful!";
+            await signInWithEmailAndPassword(auth, uField + "@firesystem.com", pField);
+            // لو نجح مش محتاج أفتح الزرار تاني عشان هينقله للصفحة اللي بعدها
         } catch (error) { 
-            console.error(error);
-            alertBox.style.backgroundColor = "#d13438"; // Red
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-                alertBox.innerText = "Wrong username or password.";
+            btn.disabled = false;
+            btn.innerText = "Login to System";
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                showAlert("Login Failed: Incorrect username or password.", "#d13438");
             } else {
-                alertBox.innerText = "Login Error. Check credentials."; 
+                showAlert("Error: " + error.message, "#d13438"); 
             }
         }
     };
 
-    window.toggleRegister = async () => {
-        const userField = document.getElementById('username').value.trim();
-        const passField = document.getElementById('password').value;
-        const alertBox = document.getElementById('authAlert');
+    // إنشاء حساب جديد
+    window.processRegister = async () => {
+        const uField = document.getElementById('regUser').value.trim();
+        const pField = document.getElementById('regPass').value;
+        const btn = document.getElementById('regBtn');
 
-        if (!userField || !passField) {
-            alertBox.innerText = "Enter Username and Password to register.";
-            alertBox.style.display = 'block';
-            alertBox.style.backgroundColor = "#d13438";
+        if (!uField || !pField) {
+            showAlert("Enter Username and Password to create account.", "#d13438");
+            return;
+        }
+        if (pField.length < 6) {
+            showAlert("Password must be at least 6 characters.", "#d13438");
             return;
         }
 
-        if (passField.length < 6) {
-            alertBox.innerText = "Password must be at least 6 characters.";
-            alertBox.style.display = 'block';
-            alertBox.style.backgroundColor = "#d13438";
-            return;
-        }
-
-        const u = userField + "@firesystem.com";
+        // قفل الزرار
+        btn.disabled = true;
+        btn.innerText = "Creating account...";
+        showAlert("Setting up your workspace...", "#0078D4");
 
         try { 
-            alertBox.style.display = 'block';
-            alertBox.style.backgroundColor = "#0078D4";
-            alertBox.innerText = "Creating account...";
-
-            await createUserWithEmailAndPassword(auth, u, passField); 
-            
-            alertBox.style.backgroundColor = "#107c10";
-            alertBox.innerText = "Account Created Successfully!";
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
+            await createUserWithEmailAndPassword(auth, uField + "@firesystem.com", pField); 
+            // مش محتاجين نرجع الزرار لأصله لأنه هيدخل على السيستم أوتوماتيك
         } catch (error) { 
-            console.error(error);
-            alertBox.style.backgroundColor = "#d13438";
+            btn.disabled = false;
+            btn.innerText = "Create & Login";
             if(error.code === 'auth/email-already-in-use') {
-                alertBox.innerText = "Username already taken. Please Login.";
+                showAlert("This Username already exists! Go to Login tab.", "#d13438");
             } else {
-                alertBox.innerText = "System Error: " + error.message; 
+                showAlert("Error: " + error.message, "#d13438"); 
             }
         }
     };
 
-    // Auto-redirect if already logged in
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('loginPage').classList.add('hidden');
@@ -307,23 +371,18 @@
         }
     });
 
-    // --- POS Sales Logic ---
+    // POS و المخزن (زي ما هما شغالين تمام)
     window.sellItem = async () => {
         const code = document.getElementById('sellInput').value.trim();
         if(!code) return;
         const ref = doc(db, "inventory", code);
-        
         try {
             const snap = await getDoc(ref);
             if(snap.exists() && snap.data().quantity > 0) {
                 await updateDoc(ref, { quantity: increment(-1) });
                 addToSalesTable(code, snap.data().name);
-            } else { 
-                alert("Product out of stock or not found."); 
-            }
-        } catch(e) {
-            console.error("Sale error: ", e);
-        }
+            } else { alert("Product out of stock or not found."); }
+        } catch(e) { console.error(e); }
         document.getElementById('sellInput').value = '';
         document.getElementById('sellInput').focus();
     };
@@ -333,7 +392,6 @@
         document.getElementById('salesTableBody').insertAdjacentHTML('afterbegin', row);
     }
 
-    // --- Inventory Sync ---
     function loadStockRealtime() {
         onSnapshot(collection(db, "inventory"), (querySnapshot) => {
             const tbody = document.getElementById('stockTableBody');
@@ -349,32 +407,26 @@
         const c = document.getElementById('pCode').value.trim();
         const n = document.getElementById('pName').value.trim();
         const q = parseInt(document.getElementById('pQty').value);
-        
         if(c && n && !isNaN(q)) {
             await setDoc(doc(db, "inventory", c), { name: n, quantity: q }, {merge: true});
             document.getElementById('pCode').value = ''; 
             document.getElementById('pName').value = ''; 
             document.getElementById('pQty').value = '';
             document.getElementById('pCode').focus();
-        } else {
-            alert("Please fill all inventory fields correctly.");
-        }
+        } else { alert("Please fill all fields correctly."); }
     };
 
-    // --- Keyboard Shortcuts & Security ---
+    // اختصارات الكيبورد
     document.addEventListener('keydown', (e) => {
-        if (e.keyCode == 123) e.preventDefault(); // Disable F12
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            openSearch();
-        }
+        if (e.keyCode == 123) e.preventDefault();
+        if (e.ctrlKey && e.key === 's') { e.preventDefault(); openSearch(); }
     });
 
     document.getElementById('sellInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sellItem(); });
-    document.getElementById('password').addEventListener('keypress', (e) => { if(e.key === 'Enter') processAuth(); });
+    document.getElementById('loginPass').addEventListener('keypress', (e) => { if(e.key === 'Enter') processAuth(); });
+    document.getElementById('regPass').addEventListener('keypress', (e) => { if(e.key === 'Enter') processRegister(); });
     document.getElementById('pQty').addEventListener('keypress', (e) => { if(e.key === 'Enter') updateStock(); });
 
-    // --- Search Modal ---
     function openSearch() {
         document.getElementById('searchOverlay').style.display = 'block';
         document.getElementById('searchModal').style.display = 'block';
