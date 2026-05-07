@@ -9,7 +9,6 @@
         :root { --primary-blue: #1a1a1a; --bg-gray: #f4f6f8; --border-color: #ddd; --text-main: #222; }
         body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background-color: var(--bg-gray); color: var(--text-main); margin: 0; overflow: hidden; user-select: none; }
         
-        /* تظبيط الهيدر عشان الموبايل وتأثير النار */
         .top-nav { background: #111; display: flex; flex-direction: column; padding: 12px 15px; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-bottom: 3px solid #ff3300; }
         .nav-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
@@ -27,7 +26,7 @@
         }
 
         .nav-tabs { display: flex; width: 100%; overflow-x: auto; gap: 10px; padding-bottom: 5px; }
-        .nav-tabs::-webkit-scrollbar { display: none; } /* إخفاء شريط التمرير */
+        .nav-tabs::-webkit-scrollbar { display: none; } 
         
         .tab-link { 
             padding: 8px 15px; color: #aaa; font-weight: bold; border-radius: 20px; 
@@ -48,11 +47,13 @@
         
         button { padding: 8px 15px; background: #2c3e50; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: 600; transition: 0.2s; white-space: nowrap;}
         button:hover { opacity: 0.9; }
-        .btn-green { background: #27ae60; } .btn-red { background: #c0392b; } .btn-wa { background: #25D366; }
+        .btn-green { background: #27ae60; } .btn-red { background: #c0392b; } .btn-wa { background: #25D366; } .btn-gray { background: #666; }
         .btn-small { padding: 4px 8px; font-size: 11px; }
         
         .hidden { display: none !important; }
-        .cart-summary { background: #fff; border: 1px dashed var(--border-color); padding: 15px; margin-top: 15px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; font-size: 16px; }
+        .cart-summary { background: #fff; border: 1px dashed var(--border-color); padding: 15px; margin-top: 15px; border-radius: 6px; display: flex; flex-direction: column; gap: 15px; font-size: 16px; }
+        .cart-totals { display: flex; justify-content: space-between; width: 100%; align-items: center;}
+        .cart-actions { display: flex; gap: 10px; width: 100%; }
         .qty-edit { cursor: pointer; color: #ff3300; font-weight: bold; text-decoration: underline; }
         
         .modal { display: none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 8px; padding: 20px; z-index: 1000; max-height: 80vh; overflow-y: auto; }
@@ -96,7 +97,10 @@
             
             <div id="posTab">
                 <div class="input-bar">
-                    <input type="text" id="sellInput" placeholder="الباركود (اضغط Enter)">
+                    <div style="display: flex; gap: 5px; flex: 1; min-width: 250px;">
+                        <input type="text" id="sellInput" placeholder="الباركود (اضغط Enter)">
+                        <button onclick="addBarcodeBtn()" style="background: #ff9800;">إضافة ➕</button>
+                    </div>
                     <select id="customerSelect">
                         <option value="">-- بيع نقدي سريع --</option>
                     </select>
@@ -117,9 +121,14 @@
                     </table>
                 </div>
                 <div class="cart-summary">
-                    <div>إجمالي القطع: <b id="cartTotalQty">0</b></div>
-                    <div>المطلوب سداده: <b style="color:#27ae60; font-size:20px;"><span id="cartTotalPrice">0</span> ج.م</b></div>
-                    <button onclick="confirmSale()" class="btn-green" style="font-size: 16px; padding: 10px 30px; width: 100%;">تأكيد الدفع</button>
+                    <div class="cart-totals">
+                        <div>القطع: <b id="cartTotalQty">0</b></div>
+                        <div>المطلوب: <b style="color:#27ae60; font-size:20px;"><span id="cartTotalPrice">0</span> ج.م</b></div>
+                    </div>
+                    <div class="cart-actions">
+                        <button onclick="printReceipt()" class="btn-gray" style="flex: 1;">طباعة 🖨️</button>
+                        <button onclick="confirmSale()" class="btn-green" style="flex: 2; font-size: 16px;">تأكيد الدفع ✅</button>
+                    </div>
                 </div>
             </div>
 
@@ -203,7 +212,7 @@
             </table>
         </div>
         <div style="margin-top:15px; text-align:left;">
-            <button onclick="closeModal()" style="background:#666;">إغلاق</button>
+            <button onclick="closeModal()" class="btn-gray">إغلاق</button>
         </div>
     </div>
 
@@ -252,21 +261,30 @@
         }
     });
 
-    document.getElementById('sellInput').addEventListener('keypress', async (e) => {
-        if(e.key === 'Enter') {
-            const code = e.target.value.trim();
-            const snap = await getDoc(doc(db, "inventory", code));
-            if(snap.exists() && snap.data().quantity > 0) {
-                const data = snap.data();
-                const item = currentCart.find(i => i.code === code);
-                const price = parseFloat(data.price) || 0;
-                if(item) item.qty++; 
-                else currentCart.push({ code, name: data.name, price: price, qty: 1 });
-                renderCart();
-            } else alert("الصنف غير متوفر بالمخزن أو الكود خاطئ");
-            e.target.value = '';
-        }
+    // دالة إضافة المنتج (عشان نستخدمها مع الزرار ومع الـ Enter)
+    async function processBarcode(code) {
+        if(!code) return;
+        const snap = await getDoc(doc(db, "inventory", code));
+        if(snap.exists() && snap.data().quantity > 0) {
+            const data = snap.data();
+            const item = currentCart.find(i => i.code === code);
+            const price = parseFloat(data.price) || 0;
+            if(item) item.qty++; 
+            else currentCart.push({ code, name: data.name, price: price, qty: 1 });
+            renderCart();
+        } else alert("الصنف غير متوفر بالمخزن أو الكود خاطئ");
+        document.getElementById('sellInput').value = '';
+        document.getElementById('sellInput').focus();
+    }
+
+    document.getElementById('sellInput').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') processBarcode(e.target.value.trim());
     });
+
+    // تشغيل دالة الإضافة من الزرار
+    window.addBarcodeBtn = () => {
+        processBarcode(document.getElementById('sellInput').value.trim());
+    };
 
     function renderCart() {
         const tbody = document.getElementById('cartTableBody');
@@ -295,6 +313,31 @@
         if(newQty && !isNaN(newQty) && newQty > 0) { currentCart[idx].qty = parseInt(newQty); renderCart(); }
     };
     window.removeFromCart = (idx) => { currentCart.splice(idx, 1); renderCart(); };
+
+    // طباعة الريسيت
+    window.printReceipt = () => {
+        if(currentCart.length === 0) { alert("الفاتورة فارغة!"); return; }
+        
+        let printContent = `<div style="font-family: Arial, sans-serif; width: 100%; max-width: 300px; margin: auto; text-align: center; direction: rtl;">`;
+        printContent += `<h2 style="margin: 5px 0;">🔥 FIRE SYSTEM</h2>`;
+        printContent += `<p style="margin: 0 0 10px 0; border-bottom: 1px dashed #000; padding-bottom: 5px;">فاتورة مبيعات</p>`;
+        
+        currentCart.forEach(item => {
+            printContent += `<div style="display:flex; justify-content:space-between; margin-bottom: 5px; font-size: 14px;">
+                <span>${item.name} (x${item.qty})</span>
+                <span>${item.qty * item.price} ج</span>
+            </div>`;
+        });
+        
+        printContent += `<p style="font-size: 18px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-top: 10px;">الإجمالي: ${document.getElementById('cartTotalPrice').innerText} ج.م</p>`;
+        printContent += `</div>`;
+        
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = printContent;
+        printArea.classList.remove('hidden');
+        window.print();
+        printArea.classList.add('hidden');
+    };
 
     window.confirmSale = async () => {
         if(currentCart.length === 0) return;
